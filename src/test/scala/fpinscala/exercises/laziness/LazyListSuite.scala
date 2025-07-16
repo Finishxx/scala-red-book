@@ -30,7 +30,9 @@ class LazyListSuite extends PropSuite:
     case Cons(h, t) => assert(Cons(h, t).headOption.contains(h()))
 
   test("LazyList.cons")(
-    genLazyList.map(tail => (LazyList.cons(Random.nextInt, tail), Cons(Random.nextInt, () => tail)))
+    genLazyList.map(tail =>
+      (LazyList.cons(Random.nextInt, tail), Cons(Random.nextInt, () => tail))
+    )
   ): (smartConstructor, oldConstructor) =>
     assertEquals(smartConstructor.headOption, smartConstructor.headOption)
     assertNotEquals(oldConstructor.headOption, oldConstructor.headOption)
@@ -48,20 +50,25 @@ class LazyListSuite extends PropSuite:
 
   test("LazyList.takeWhile")(genSmallInt ** genLazyList):
     case n ** lazyList =>
-      assertEquals(lazyList.takeWhile(_ != n).toList, lazyList.toList.takeWhile(_ != n))
+      assertEquals(
+        lazyList.takeWhile(_ != n).toList,
+        lazyList.toList.takeWhile(_ != n)
+      )
 
   test("LazyList.forAll")(genSmallInt ** genLazyList):
     case n ** lazyList =>
       assertEquals(lazyList.forAll(_ != n), !lazyList.toList.contains(n))
 
-  /*
   test("LazyList.map")(genSmallInt ** genLazyList):
     case n ** lazyList =>
       assertEquals(lazyList.map(_ + n).toList, lazyList.toList.map(_ + n))
 
   test("LazyList.filter")(genSmallInt ** genLazyList):
     case n ** lazyList =>
-      assertEquals(lazyList.filter(_ != n).toList, lazyList.toList.filter(_ != n))
+      assertEquals(
+        lazyList.filter(_ != n).toList,
+        lazyList.toList.filter(_ != n)
+      )
 
   test("LazyList.append")(genLazyList ** genLazyList):
     case first ** second =>
@@ -69,8 +76,10 @@ class LazyListSuite extends PropSuite:
 
   test("LazyList.flatMap")(genSmallInt ** genLazyList):
     case n ** lazyList =>
-      assertEquals(lazyList.flatMap(a => LazyList(a + n)).toList, lazyList.toList.flatMap(a => List(a + n)))
-   */
+      assertEquals(
+        lazyList.flatMap(a => LazyList(a + n)).toList,
+        lazyList.toList.flatMap(a => List(a + n))
+      )
 
   test("LazyList.ones")(genMidInt): n =>
     assertEquals(ones.take(n).toList, List.fill(n)(1))
@@ -92,7 +101,10 @@ class LazyListSuite extends PropSuite:
     assertEquals(unfold(1)(genFirstNumbers).toList, (1 to n).toList)
 
   test("LazyList.fibsViaUnfold")(genLengthOfFibonacciSeq): n =>
-    assertEquals(fibsViaUnfold.take(n).toList, theFirst21FibonacciNumbers.take(n).toList)
+    assertEquals(
+      fibsViaUnfold.take(n).toList,
+      theFirst21FibonacciNumbers.take(n).toList
+    )
 
   test("LazyList.fromViaUnfold")(genMidInt ** genMidInt):
     case n ** a =>
@@ -105,10 +117,12 @@ class LazyListSuite extends PropSuite:
   test("LazyList.onesViaUnfold")(genMidInt): n =>
     assertEquals(onesViaUnfold.take(n).toList, List.fill(n)(1))
 
-  /*
   test("LazyList.mapViaUnfold")(genSmallInt ** genLazyList):
     case n ** lazyList =>
-      assertEquals(lazyList.mapViaUnfold(_ + n).toList, lazyList.toList.map(_ + n))
+      assertEquals(
+        lazyList.mapViaUnfold(_ + n).toList,
+        lazyList.toList.map(_ + n)
+      )
 
   test("LazyList.takeViaUnfold")(genSmallInt ** genLazyList):
     case n ** lazyList =>
@@ -116,40 +130,57 @@ class LazyListSuite extends PropSuite:
 
   test("LazyList.takeWhileViaUnfold")(genSmallInt ** genLazyList):
     case n ** lazyList =>
-      assertEquals(lazyList.takeWhileViaUnfold(_ != n).toList, lazyList.toList.takeWhile(_ != n))
+      assertEquals(
+        lazyList.takeWhileViaUnfold(_ != n).toList,
+        lazyList.toList.takeWhile(_ != n)
+      )
 
   test("LazyList.zipWith")(genLazyList ** genLazyList):
     case first ** second =>
-      assertEquals(first.zipWith(second)(_ + _).toList, first.toList.zip(second.toList).map(_ + _))
+      assertEquals(
+        first.zipWith(second)(_ + _).toList,
+        first.toList.zip(second.toList).map(_ + _)
+      )
 
   test("LazyList.zipAll")(genLazyList ** genLazyList):
     case first ** second =>
-      assertEquals(first.zipAll(second).toList, first.toList.map(Some(_)).zipAll(second.toList.map(Some(_)), None, None))
-   */
+      assertEquals(
+        first.zipAll(second).toList,
+        first.toList.map(Some(_)).zipAll(second.toList.map(Some(_)), None, None)
+      )
 
   test("LazyList.startsWith")(genLazyList ** genLazyList):
     case list1 ** list2 =>
-      assertEquals(list1.startsWith(list2), list1.toList.startsWith(list2.toList))
+      assertEquals(
+        list1.startsWith(list2),
+        list1.toList.startsWith(list2.toList)
+      )
       assert(list1.startsWith(empty))
       assert(list1.startsWith(list1))
 
-/*
   test("LazyList.tails")(genLazyList): lazyList =>
     val list = lazyList.toList
     val expected = (0 to list.length).map(i => list.drop(i)).toList
     assertEquals(lazyList.tails.toList.map(_.toList), expected)
 
-  test("LazyList.hasSubsequence")(genSmallInt ** genLazyList):
-    case n ** list =>
-      assert(list.hasSubsequence(Empty))
-      assert(list.hasSubsequence(list))
-      assert(list.hasSubsequence(list.drop(n)))
+  /*
 
-  test("LazyList.hasSubsequence - random lazy lists")(genLazyList ** genLazyList):
-    case list1 ** list2 =>
-      assertEquals(list1.hasSubsequence(list2), list1.toList.containsSlice(list2.toList))
+test("LazyList.hasSubsequence")(genSmallInt ** genLazyList):
+  case n ** list =>
+    assert(list.hasSubsequence(Empty))
+    assert(list.hasSubsequence(list))
+    assert(list.hasSubsequence(list.drop(n)))
 
+test("LazyList.hasSubsequence - random lazy lists")(genLazyList ** genLazyList):
+  case list1 ** list2 =>
+    assertEquals(list1.hasSubsequence(list2), list1.toList.containsSlice(list2.toList))
+   */
   test("LazyList.scanRight")(genLazyList): lazyList =>
-    assertEquals(lazyList.scanRight(0)(_ + _).toList, lazyList.tails.map(_.toList.sum).toList)
-    assertEquals(lazyList.scanRight(1)(_ * _).toList, lazyList.tails.map(_.toList.product).toList)
- */
+    assertEquals(
+      lazyList.scanRight(0)(_ + _).toList,
+      lazyList.tails.map(_.toList.sum).toList
+    )
+    assertEquals(
+      lazyList.scanRight(1)(_ * _).toList,
+      lazyList.tails.map(_.toList.product).toList
+    )

@@ -1,4 +1,5 @@
 package fpinscala.exercises.state
+import fpinscala.exercises.state.Input.{Coin, Turn}
 
 trait RNG:
   def nextInt: (Int, RNG) // Should generate a random `Int`. We'll later define other functions in terms of `nextInt`.
@@ -83,13 +84,27 @@ object RNG:
           val (a, rng3) = h(rng2)
           (a :: l, rng3)
 
-  def flatMap[A, B](r: Rand[A])(f: A => Rand[B]): Rand[B] = ???
+  def flatMap[A, B](r: Rand[A])(f: A => Rand[B]): Rand[B] =
+    rng =>
+      val (a, rng2) = r(rng)
+      f(a)(rng2)
 
-  def mapViaFlatMap[A, B](r: Rand[A])(f: A => B): Rand[B] = ???
+  def nonNegativeLessThan(n: Int): Rand[Int] =
+    flatMap(nonNegativeInt): i =>
+      val mod = i % n
+      if i + (n - 1) - mod >= 0 then unit(i)
+      else nonNegativeLessThan(n)
+
+  def mapViaFlatMap[A, B](r: Rand[A])(f: A => B): Rand[B] =
+    flatMap(r): a =>
+      unit(f(a))
 
   def map2ViaFlatMap[A, B, C](ra: Rand[A], rb: Rand[B])(
     f: (A, B) => C
-  ): Rand[C] = ???
+  ): Rand[C] =
+    flatMap(ra): a =>
+      flatMap(rb): b =>
+        unit(f(a, b))
 
 opaque type State[S, +A] = S => (A, S)
 
@@ -98,20 +113,53 @@ object State:
     def run(s: S): (A, S) = underlying(s)
 
     def map[B](f: A => B): State[S, B] =
-      ???
+      s =>
+        val (a, s2) = underlying(s)
+        (f(a), s2)
 
     def map2[B, C](sb: State[S, B])(f: (A, B) => C): State[S, C] =
-      ???
+      s =>
+        val (a, s2) = underlying(s)
+        val (b, s3) = sb(s2)
+        (f(a, b), s3)
 
     def flatMap[B](f: A => State[S, B]): State[S, B] =
-      ???
+      s =>
+        val (a, s2) = underlying(s)
+        f(a)(s2)
+
+  def sequence[S, A](sa: List[State[S, A]]): State[S, List[A]] =
+    sa.foldRight(unit(Nil: List[A])): (a, acc) =>
+      a.map2(acc)(_ :: _)
 
   def apply[S, A](f: S => (A, S)): State[S, A] = f
+
+  def unit[S, A](a: A): State[S, A] = s => (a, s)
 
 enum Input:
   case Coin, Turn
 
 case class Machine(locked: Boolean, candies: Int, coins: Int)
 
+def get[S]: State[S, S] = s => (s, s)
+
 object Candy:
-  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
+  // Returns a function, which takes a Machine and returns
+  // (coins_left, candies_left) after executing the inputs
+  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] =
+    def transition(input: Input): State[Machine, Unit] =
+      State: (machine: Machine) =>
+        input match
+          case _ if machine.candies <= 0 => ((), machine)
+          case Coin if machine.locked && machine.candies > 0 =>
+            ((), machine.copy(coins = machine.coins + 1, locked = false))
+          case Turn if !machine.locked =>
+            assert(machine.candies > 0)
+            ((), machine.copy(candies = machine.candies - 1, locked = true))
+          case _ =>
+            ((), machine)
+
+    for
+      _ <- State.sequence(inputs.map(transition))
+      s <- get
+    yield (s.coins, s.candies)

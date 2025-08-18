@@ -114,9 +114,6 @@ object Par:
       _.flatten
     ) // convenience method on `List` for concatenating a list of lists
 
-
-  ???
-
   def equal[A](e: ExecutorService)(p: Par[A], p2: Par[A]): Boolean =
     p(e).get == p2(e).get
 

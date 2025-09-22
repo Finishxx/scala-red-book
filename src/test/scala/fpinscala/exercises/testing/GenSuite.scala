@@ -69,6 +69,7 @@ object Gen:
       val (randomBooleanList, _) = Gen.boolean.listOfN(Gen.unit(n)).next(rng)
       assertEquals(randomBooleanList.length, n)
 
+
   test("Exercise 8.7")(ExhGen.int ** ExhGen.int ** genRNG):
     case n ** m ** rng =>
       val genUnion = Gen.union(Gen.unit(n), Gen.unit(m))
@@ -83,7 +84,7 @@ object Gen:
         "Values should be extracted with approximately equal likelihood"
       )
 
-  /*
+  
   test("Exercise 8.8")(ExhGen.int ** ExhGen.int ** genRNG):
     case n ** m ** rng =>
       val genUnion0 = Gen.weighted((Gen.unit(n), 0.0), (Gen.unit(m), 1.0))
@@ -117,7 +118,7 @@ object Gen:
         unionList3.count(_ == m) >= shortSample / 2,
         "g2 is twice as common as g1"
       )
-   */
+   
 // Prop tests: Before using these tests (starting from Exercise 8.9),
 // add the next block to fpinscala.exercises.testing.Gen.scala file
 /* ToDo: fpinscala.exercises.testing.Gen.scala file's block
